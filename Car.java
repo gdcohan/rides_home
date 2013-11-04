@@ -15,10 +15,11 @@ public class Car {
 	}
 	
 	public void addRider(Rider r) {
-		if (isFull)
+		if (isFull || r.isAssigned())
 			return;
 		
 		riders[numRiders++] = r;
+		r.setAssigned(true);
 		isFull = (numRiders == CAPACITY);
 	}
 	
