@@ -1,4 +1,3 @@
-
 public class Rider {
 
 	public String destination;
@@ -8,4 +7,17 @@ public class Rider {
 		this.destination = destination;
 		isAssigned = false;
 	}
+	
+	public String getDestination() {
+		return destination;
+	}
+	
+	public boolean isAssigned(){
+		return isAssigned;
+	}
+	
+	public boolean setAssigned(boolean b) {
+		isAssigned = b;
+	}
+	
 }
