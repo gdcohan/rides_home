@@ -10,6 +10,7 @@ public class Initializer {
 	public static final String LOCAL_DEBUG = "";
 	public static final String TOWN_FILE = LOCAL_DEBUG + "student_towns.txt";
 	public static final String CAR_FILE = LOCAL_DEBUG + "Student Cars by State.csv";
+	public static final long CAR_SEED = 123456l;
 	
 	
 	public Initializer(String studentFile, String carFile) {
@@ -19,7 +20,7 @@ public class Initializer {
 		
 		List<Car> cars = new ArrayList<Car>();
 		List<Rider> riders = new ArrayList<Rider>();
-		assignDrivers(123456, students, carsByState, cars, riders);
+		assignDrivers(CAR_SEED, students, carsByState, cars, riders);
 		
 	}
 	
@@ -30,7 +31,41 @@ public class Initializer {
 								HashMap<String, Integer> carsByState,
 								List<Car> cars, List<Rider> riders) {
 		
+		for (Entry entry : carsByState.getEntrySet()) {
+			String state = entry.getKey();
+			List<String> studentsInState = getStudentsInState(students, state);
+			
+			int i=0;
+			for (String student : studentsInState) {
+				if (i < count) {
+					cars.add(new Car(student));
+				} else {
+					riders.add(new Rider(student));
+				}
+				i++;
+			}
+		}
 		
+		
+	}
+	
+	private void shuffleList(long randSeed, ArrayList<String> list) {
+		//TODO implement
+	}
+	
+	private ArrayList<String> getStudentsInState(List<String> students, String state) {
+		
+		ArrayList<String> studentsInState = new ArrayList<String>();
+		
+		for (Student s : students) {
+			String[] splits = s.split(",");
+			String studentState = splits[splits.length-1].trim().toUpperCase();
+			if (studentState.equals(state)) {
+				studentsInState.add(s);
+			}
+		}
+		
+		return studentsInState;
 		
 	}
 	
@@ -42,7 +77,7 @@ public class Initializer {
 			String line;
 			while ((line=in.readLine()) != null) {
 				String[] splits = line.split(",");
-				carsByState.put(splits[0], Integer.parseInt(splits[1]));
+				carsByState.put(splits[0].trim().toUpperCase(), Integer.parseInt(splits[1]));
 			}
 		 
 		} catch(Exception e) {
