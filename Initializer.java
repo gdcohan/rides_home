@@ -12,19 +12,38 @@ public class Initializer {
 	public static final String CAR_FILE = LOCAL_DEBUG + "Student Cars by State.csv";
 	public static final long CAR_SEED = 123456l;
 	
+	private List<Car> cars;
+	private List<Rider> riders;
 	
 	public Initializer(String studentFile, String carFile) {
 		
 		List<String> students = parseStudents(studentFile);
 		HashMap<String, Integer> carsByState = parseCars(carFile);
 		
-		List<Car> cars = new ArrayList<Car>();
-		List<Rider> riders = new ArrayList<Rider>();
+		cars = new ArrayList<Car>();
+		riders = new ArrayList<Rider>();
 		assignDrivers(CAR_SEED, students, carsByState, cars, riders);
+		
+		groupSameTown(cars, riders);
 		
 	}
 	
+	public List<Car> getCars(){
+		return cars;
+	}
 	
+	public List<Rider> getRiders() {
+		return riders;
+	}
+	
+	private void groupSameTowns(List<Car> cars, List<Rider> riders) {
+		for (Rider rider : riders) {
+			for (Car car : cars) {
+				if (!car.isFull() && car.getDestination().equals(rider.getDestination()))
+					car.addRider(rider);
+			}
+		}
+	}
 	
 	//cars and riders are outputs (will be modified)
 	private void assignDrivers(long randSeed, List<String> students,
@@ -49,8 +68,14 @@ public class Initializer {
 		
 	}
 	
-	private void shuffleList(long randSeed, ArrayList<String> list) {
-		//TODO implement
+	private void shuffleList(long randSeed, List<String> list) {
+		Random rand = new Random(randSeed);
+		for (int i=list.size()-1; i>=0; i--) {
+			int x = rand.nextInt(i+1);
+			String temp = list.get(x);
+			list.set(x, list.get(i));
+			list.set(i, temp);
+		}
 	}
 	
 	private ArrayList<String> getStudentsInState(List<String> students, String state) {
