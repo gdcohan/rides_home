@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.LinkedList;
+import java.util.Map.Entry;
+import java.util.Random;
 
 public class Initializer {
 
@@ -24,7 +26,7 @@ public class Initializer {
 		riders = new ArrayList<Rider>();
 		assignDrivers(CAR_SEED, students, carsByState, cars, riders);
 		
-		groupSameTown(cars, riders);
+		groupSameTowns(cars, riders);
 		
 	}
 	
@@ -50,11 +52,14 @@ public class Initializer {
 								HashMap<String, Integer> carsByState,
 								List<Car> cars, List<Rider> riders) {
 		
-		for (Entry entry : carsByState.getEntrySet()) {
+		for (Entry<String, Integer> entry : carsByState.entrySet()) {
 			String state = entry.getKey();
 			List<String> studentsInState = getStudentsInState(students, state);
 			
+			shuffleList(randSeed, studentsInState);
+			
 			int i=0;
+			int count = entry.getValue();
 			for (String student : studentsInState) {
 				if (i < count) {
 					cars.add(new Car(student));
@@ -82,7 +87,7 @@ public class Initializer {
 		
 		ArrayList<String> studentsInState = new ArrayList<String>();
 		
-		for (Student s : students) {
+		for (String s : students) {
 			String[] splits = s.split(",");
 			String studentState = splits[splits.length-1].trim().toUpperCase();
 			if (studentState.equals(state)) {

@@ -16,7 +16,7 @@ public class Rider {
 		return isAssigned;
 	}
 	
-	public boolean setAssigned(boolean b) {
+	public void setAssigned(boolean b) {
 		isAssigned = b;
 	}
 	
