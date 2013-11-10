@@ -14,8 +14,8 @@ public class Initializer {
 	public static final String CAR_FILE = LOCAL_DEBUG + "Student Cars by State.csv";
 	public static final long CAR_SEED = 123456l;
 	
-	private List<Car> cars;
-	private List<Rider> riders;
+	private ArrayList<Car> cars;
+	private ArrayList<Rider> riders;
 	
 	public Initializer(String studentFile, String carFile) {
 		
@@ -30,11 +30,11 @@ public class Initializer {
 		
 	}
 	
-	public List<Car> getCars(){
+	public ArrayList<Car> getCars(){
 		return cars;
 	}
 	
-	public List<Rider> getRiders() {
+	public ArrayList<Rider> getRiders() {
 		return riders;
 	}
 	
