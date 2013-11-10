@@ -26,7 +26,7 @@ public class Initializer {
 		riders = new ArrayList<Rider>();
 		assignDrivers(CAR_SEED, students, carsByState, cars, riders);
 		
-		groupSameTowns(cars, riders);
+		//groupSameTowns(cars, riders);
 		
 	}
 	
