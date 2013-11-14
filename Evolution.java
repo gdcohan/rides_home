@@ -5,93 +5,98 @@ public class Evolution {
     public static final int INITIAL_POP_SIZE = 1000;
     public static final double PROPORTION_MATING = .667;
     public static final int NUM_MUTATIONS = 10;
+    public static final int NUM_PRESERVED_POP = 100;
     
     public static void main(String[] args) {
 	Initializer init = new Initializer(Initializer.TOWN_FILE, INITIALIZER.CAR_FILE);
 	ArrayList<Car> allCars = init.getCars();
 	Arraylist<Rider> allRiders = init.getRiders();
 
-	ArrayList<Rider[]> population = generateInitialPopulation(allRiders);
+	ArrayList<Solution> population = generateInitialPopulation(allRiders);
 	for (int i = 0; i < NUM_GENERATIONS; i++) {
-	    Rider[] bestSolution = getBestSolution(population, allCars);
+	    Solution bestSolution = getBestSolution(population, allCars);
 	    int cost = getCostOfSolution(bestSolution, allCars);
-	    ArrayList<Rider[]> population = cullPopulation(population);
-	    ArrayList<Rider[]> nextGen = produceOffspring(population);
+	    ArrayList<Solution> population = cullPopulation(population);
+	    ArrayList<Solution> nextGen = produceOffspring(population);
 	    population.addAll(nextGen);
 	}
 	bestSolution = getBestSolution(population);
 	System.out.println("Your best solution is: " + bestSolution);
     }
 
-    private static ArrayList<Rider[]> produceOffspring(ArrayList<Rider[]> population) {
-	ArrayList<Rider[]> nextGen = new ArrayList<Rider[]>();
+    private static ArrayList<Solution> produceOffspring(ArrayList<Solution> population) {
+	ArrayList<Solution> nextGen = new ArrayList<Solution>();
 	shuffleList(population);
 	int matingCutoff = population.size() * PROPORTION_MATING;
 	for (int i = 0; i < matingCutoff; i = i+2) {
-	    Rider[] offSpring = makeBaby(population.get(i), population.get(i+1));
+	    Solution offSpring = makeBaby(population.get(i), population.get(i+1));
 	    nextGen.add(offSpring);
 	}
 	for (int i = matingCutoff; i < population.size(); i++) {
-	    Rider[] mutated = mutateSolution(population.get(i));
+	    Solution mutated = mutateSolution(population.get(i));
 	    nextGen.add(mutated);
 	}
     }
 
-    private static Rider[] mutateSolution(Rider[] mutatee) {
-	Rider[] mutation = mutatee.clone();
+    private static Solution mutateSolution(Solution mutatee) {
+	Solution mutation = mutatee.clone();
+	Rider[] riders = mutation.getRiders();
 	for (int i = 0; i < NUM_MUTATIONS; i++) {
-	    int i1 = (int)(Math.random() * mutation.length);
-	    int i2 = (int)(Math.random() * mutation.length);
+	    int i1 = (int)(Math.random() * riders.length);
+	    int i2 = (int)(Math.random() * riders.length);
 	    mutation[i1] = mutatee[i2];
 	    mutation[i2] = mutatee[i1];
 	}
 	return mutation;
     }
 
-    private static Rider[] makeBaby(Rider[] mommy, Rider[] daddy) {
+    private static Solution makeBaby(Solution mommy, Solution daddy) {
 	//Preserve a section of the mommy
-	Rider[] baby = new Rider[mommy.length];
-	int momStart = (Math.random()*mommy.length)/4;
-	int momEnd = (Math.random()*mommy.length)/4;
+	Solution baby = new Solution(new Rider[mommy.getRiders().length]);
+	Rider[] mommysRiders = mommy.getRiders();
+	Rider[] babysRiders = baby.getRiders();
+	Rider[] daddysRiders = daddy.getRiders();
+	int momStart = (Math.random()*babysRiders.length)/4;
+	int momEnd = (Math.random()*babysRiders.length)/4;
 	if (momEnd < momStart) {
 	    int temp = momEnd;
 	    momEnd = momStart;
 	    momStart = temp;
 	}
 	for (int i=4*momStart; i<4*momEnd; i++) {
-	    baby[i] = mommy[i];
+	    babysRiders[i] = mommysRiders[i];
 	}
 	
 	//Preserve as much as possible from the daddy, adding ghosts
 	Rider ghostRider = new Rider("BOOOOO!");
 	List<Integer> ghostLocs = new ArrayList<Integer>();
 	for (int i=0; i<4*mommyStart; i++) {
-	    if (isRiderBetween(daddy[i], baby, 4*momStart, 4*momEnd)){
-		baby[i] = ghostRider;
+	    if (isRiderBetween(daddysRiders[i], babysRiders, 4*momStart, 4*momEnd)){
+		babysRiders[i] = ghostRider;
 		ghostLocs.add(i);
 	    } else {
-		baby[i] = daddy[i];
+		babysRiders[i] = daddysRiders[i];
 	    }
 	}
-	for (int i=4*mommyEnd; i<baby.length; i++) {
-	    if (isRiderBetween(daddy[i], baby, 4*momStart, 4*momEnd)){
-		baby[i] = ghostRider;
+	for (int i=4*mommyEnd; i<babysRiders.length; i++) {
+	    if (isRiderBetween(daddysRiders[i], babysRiders, 4*momStart, 4*momEnd)){
+		babysRiders[i] = ghostRider;
 		ghostLocs.add(i);
 	    } else {
-		baby[i] = daddy[i];
+		babysRiders[i] = daddysRiders[i];
 	    }
 	}
 	//Find unassigned riders
 	List<Rider> unassigned = new ArrayList<Rider>();
 	for (int i=4*momStart; i<4*momEnd; i++){
-	    if (!isRiderBetween(daddy[i], mommy, 4*momStart, 4*momEnd))
-		unassigned.add(daddy[i]);
+	    if (!isRiderBetween(daddysRiders[i], mommysRiders, 4*momStart, 4*momEnd))
+		unassigned.add(daddysRiders[i]);
 	}
 	//Replace the ghosts
 	shuffleList(ghostLocs);
 	shuffleList(unassigned);
 	for (int i=0; i<ghostLocs.size() && i<unassigned.size(); i++) {
-	    baby[ghostLocs.get(i)] = unassigned.get(i);
+	    babysRiders[ghostLocs.get(i)] = unassigned.get(i);
 	}
 	
 	return baby;
@@ -106,39 +111,57 @@ public class Evolution {
 	return false;
     }
 
-    private static ArrayList<Rider[]> cullPopulation(ArrayList<Rider[]> population) {
-	ArrayList<Rider[]> culledPop = new ArrayList<Rider[]>();
-	double[] probs = getProportionalProbs(population);
-	for (int i = 0; i < population.length; i++) {
-	    if (Math.random() < probs[i]) culledPop.add(population.get(i));
+    private static ArrayList<Solution> cullPopulation(ArrayList<Solution> population) {
+	ArrayList<Solution> culledPop = new ArrayList<Solution>();
+	Collections.sort(population, new Comparator<Solution>() {
+		@Override
+		public int compare(Solution s1, Solution s2) {
+		    return (s1.getCost() < s2.getCost() ? -1 : (s1.getCost() == s2.getCost ? 0 : 1));
+		}
+	    });
+	Random rand = new Random();
+	// Preserve fixed amount from parent generation
+	for (int i = 0; i < NUM_PRESERVED_POP; i++) {
+	    culledPop.add(population.get(i));
+	}
+	population.removeRange(0, NUM_PRESERVED_POP);
+	population.removeRange(population.size() - NUM_PRESERVED_POP, population.size());
+	ArrayList<Solution> favorites = new ArrayList<Solution>();
+	ArrayList<Solution> challengers = new ArrayList<Solution>();
+	for (int i = 0; i < population.size() / 2; i++) {
+	    favorites.add(population.get(i));
+	    challengers.add(population.get(population.size() - i - 1));
+	}
+	shuffleList(challengers);
+	for (int i = 0; i < favorites.size(); i++) {
+	    Solution favorite = favorites.get(i);
+	    Solution challenger = challengers.get(i);
+	    double favoriteOdds = favorite.getCost() / (favorite.getCost() + challenger.getCost());
+	    if (Math.random() < favoriteOdds) 
+		culledPop.add(favorite);
+	    else 
+		culledPop.add(challenger);
 	}
 	return culledPop;
     }
 
-    // TODO: IMPLEMENT THIS METHOD--FO REAL
-    private static double[] getProportionalProbs(ArrayList<Rider[]> population) {
-	double[] probs = new double[population.size()];
-	for (int i = 0; i < probs.length; i++) {
-	    probs[i] = .5;
-	}
-    }
-
-    private static ArrayList<Rider[]> generateInitialPopulation(ArrayList<Rider> allRiders) {
-	ArrayList<Rider[]> initialPop = new ArrayList<Rider[]>();
+    private static ArrayList<Solution> generateInitialPopulation(ArrayList<Rider> allRiders) {
+	ArrayList<Solution> initialPop = new ArrayList<Solution>();
 	for (int i=0; i<INITIAL_POP_SIZE; i++) {
 	    List<Rider> solution = shuffleList(allRiders.clone());
+	    
 	    Rider[] solutionArray = new Rider[solution.size()];
 	    solution.toArray(solutionArray);
-	    initialPop.add(solution);
+	    initialPop.add(new Solution(solutionArray));
 	}
     }
 
-    private static Rider[] getBestSolution(ArrayList<Rider[]> population, ArrayList<Car> allCars) {
+    private static Solution getBestSolution(ArrayList<Solution> population) {
 	int bestCostSoFar = Integer.MAX_VALUE;
-	Rider[] bestSolutionSoFar;
+	Solution bestSolutionSoFar;
 	for (int i = 0; i < population.size(); i++) {
-	    Rider[] currSoln = population.get(i);
-	    int cost = getCostOfSolution(currSoln, allCars);
+	    Solution currSoln = population.get(i);
+	    int cost = currSoln.getCost();//getCostOfSolution(currSoln, allCars);
 	    if (cost < bestCostSoFar) {
 		bestCostSoFar = cost;
 		bestSolutionSoFar = currSoln;
@@ -147,6 +170,7 @@ public class Evolution {
 	return bestSolutionSoFar;
     }
 
+    /*
     private static int getCostOfSolution(Rider[] solution, ArrayList<Car> allCars) {
 	ArrayList<Car> currCars = allCars.clone();
 	for (int i =0 ; i < solution.length; i++) {
@@ -158,6 +182,7 @@ public class Evolution {
 	}
 	return costSoFar;
     }
+    */
 
     private static List<?> shuffleList(List<?> list) {
 	Random rand = new Random();
@@ -168,6 +193,32 @@ public class Evolution {
 	    list.set(i, temp);
 	}
 	return list;
+    }
+
+    private class Solution() {
+	private Rider[] riders;
+	private int cost;
+
+	private Solution(Rider[] riders, int cost) {
+	    this.riders = riders;
+	    this.cost = cost;
+	}
+
+	private Solution(Rider[] riders) {
+	    this.riders = riders;
+	}
+
+	private getCost() {
+	    return cost;
+	}
+
+	private getRiders() {
+	    return riders;
+	}
+
+	private Solution clone() {
+	    return new Solution(riders.clone(), this.getCost());
+	}
     }
 
 }
