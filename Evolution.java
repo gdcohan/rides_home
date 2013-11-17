@@ -15,7 +15,6 @@ public class Evolution {
 	ArrayList<Solution> population = generateInitialPopulation(allRiders);
 	for (int i = 0; i < NUM_GENERATIONS; i++) {
 	    Solution bestSolution = getBestSolution(population, allCars);
-	    int cost = getCostOfSolution(bestSolution, allCars);
 	    ArrayList<Solution> population = cullPopulation(population);
 	    ArrayList<Solution> nextGen = produceOffspring(population);
 	    population.addAll(nextGen);
@@ -156,12 +155,12 @@ public class Evolution {
 	}
     }
 
-    private static Solution getBestSolution(ArrayList<Solution> population) {
+    private static Solution getBestSolution(ArrayList<Solution> population, ArrayList<Car> allCars) {
 	int bestCostSoFar = Integer.MAX_VALUE;
 	Solution bestSolutionSoFar;
 	for (int i = 0; i < population.size(); i++) {
 	    Solution currSoln = population.get(i);
-	    int cost = currSoln.getCost();//getCostOfSolution(currSoln, allCars);
+	    int cost = currSoln.getCost(allCars);
 	    if (cost < bestCostSoFar) {
 		bestCostSoFar = cost;
 		bestSolutionSoFar = currSoln;
@@ -198,21 +197,34 @@ public class Evolution {
     private class Solution() {
 	private Rider[] riders;
 	private int cost;
+	private Car[] cars;
 
-	private Solution(Rider[] riders, int cost) {
+	private Solution(Rider[] riders, int cost, Car[] cars) {
 	    this.riders = riders;
 	    this.cost = cost;
+	    this.cars = cars;
 	}
 
 	private Solution(Rider[] riders) {
 	    this.riders = riders;
 	}
 
-	private getCost() {
-	    return cost;
+	private int getCost(ArrayList<Car> allCars) {
+	    int costSoFar = 0
+	    for (int i = 0; i < riders.length; i++) {
+		int carIndex = i/4;
+		Car currCar = allCars.get(carIndex);
+		Rider[] carsRiders = new Rider[4];
+		for (int j = 0; j < 4; j++) {
+		    carsRiders[j] = riders[i++];
+		}
+		currCar.setRiders(carsRiders);
+		costSoFar += (int) currCar.getCost();
+	    }
+	    return costSoFar;
 	}
 
-	private getRiders() {
+	private Rider[] getRiders() {
 	    return riders;
 	}
 
