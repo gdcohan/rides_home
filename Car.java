@@ -1,3 +1,6 @@
+import java.util.HashMap;
+import java.util.LinkedList;
+
 public class Car {
 
     public static final int CAPACITY = 4;
@@ -19,6 +22,10 @@ public class Car {
     
     public static void setDistanceMatrix(HashMap<String, HashMap<String, Double>> distanceMatrix) {
     	distances = distanceMatrix;
+    }
+    
+    public static HashMap<String, HashMap<String, Double>> getDistanceMatrix() {
+    	return distances;
     }
     
     public void addRider(Rider r) {
@@ -43,7 +50,25 @@ public class Car {
     	
     	//Amherst to others
     	for (int i=1; i<carCosts.length-1; i++) {
-    		carCosts[0][i] = distances.get("Amherst, MA").get(riders[i-1].getDestination());
+    		if (riders[i-1] == null)
+    			System.out.println("Riders i-1 is null");
+    		if (riders[i-1].getDestination() == null)
+    			System.out.println("Dest null");
+    		if (distances.get("Amherst, MA") == null)
+    			System.out.println("aMherst");
+    		if (carCosts[0] == null)
+    			System.out.println("carcar"); 
+    		
+    		
+    		
+    		try {
+    			carCosts[0][i] = distances.get("Amherst, MA").get(riders[i-1].getDestination());
+    		}catch(NullPointerException e) {
+    			/*System.out.println(distances.get("Amherst, MA"));
+        		System.out.println(riders[i-1].getDestination());
+        		System.out.println(distances.get("Amherst, MA").get(riders[i-1].getDestination()));*/
+    			carCosts[0][i] = 0.0;
+    		}
     	}
     	//carCosts[0][carCost[0].length-1] = distances.get("Amherst, MA").get(destination);
     	
@@ -92,21 +117,26 @@ public class Car {
     		}
     		
     	}
+    	return minIndex;
     }
     
     public void swapRiders(Rider departing, Rider arriving) {
-	for (int i = 0; i < numRiders; i++) {
-	    if (departing.Id == riders[i].Id) {
-		riders[i] = arriving;
-	    }
-	}
+		for (int i = 0; i < numRiders; i++) {
+		    if (departing.Id == riders[i].Id) {
+			riders[i] = arriving;
+		    }
+		}
     }
 
-   public boolean isFull() {
-	return isFull;
+    public boolean isFull() {
+    	return isFull;
     }
     
     public String getDestination() {
-	return destination;
+    	return destination;
+    }
+    
+    public Rider[] getRiders() {
+    	return riders;
     }
 }
