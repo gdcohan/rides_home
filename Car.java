@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.LinkedList;
 
+// Written by Mike and sort of Greg
 public class Car {
 
     public static final int CAPACITY = 4;
@@ -14,10 +15,10 @@ public class Car {
     public int id;
     
     public Car(String destination) {
-	this.destination = destination;
-	riders = new Rider[CAPACITY];
-	numRiders = 0;
-	isFull = false;
+		this.destination = destination;
+		riders = new Rider[CAPACITY];
+		numRiders = 0;
+		isFull = false;
     }
     
     public static void setDistanceMatrix(HashMap<String, HashMap<String, Double>> distanceMatrix) {
@@ -29,19 +30,34 @@ public class Car {
     }
     
     public void addRider(Rider r) {
-	if (isFull || r.isAssigned())
-	    return;
-	
-	riders[numRiders++] = r;
-	r.setAssigned(true);
-	isFull = (numRiders == CAPACITY);
+    	riders[numRiders++] = r;
+    	isFull = (numRiders == CAPACITY);
+    }
+    
+    public void removeLastRider() {
+    	riders[--numRiders] = null;
+    	isFull = (numRiders == CAPACITY);
     }
     
     public void setRiders(Rider[] toSet) {
-    	riders = toSet.clone();
-    	numRiders = toSet.length;
+    	for(int i=0; i<riders.length; i++)
+    		riders[i] = null;
+    		
+    	numRiders = 0;
+    	for (Rider r : toSet) {
+    		if (r != null) {
+    			riders[numRiders++] = r;
+    		}    		
+    	}
+    	//System.out.println(numRiders);
+    	isFull = (numRiders == CAPACITY);
     }
     
+    /*
+     * Attempts to find the minimum cost route given the riders
+     * in the car. Starting at Amherst, goes to the closest destination,
+     * then the closest destination from there, etc.
+     */
     public double getCost() {
     	
     	//1: Initialize a matrix of distances
@@ -49,39 +65,30 @@ public class Car {
     	//carCosts[i][j] is dist from i to j 
     	
     	//Amherst to others
+    	
     	for (int i=1; i<carCosts.length-1; i++) {
     		if (riders[i-1] == null)
-    			System.out.println("Riders i-1 is null");
-    		if (riders[i-1].getDestination() == null)
-    			System.out.println("Dest null");
-    		if (distances.get("Amherst, MA") == null)
-    			System.out.println("aMherst");
-    		if (carCosts[0] == null)
-    			System.out.println("carcar"); 
-    		
-    		
-    		
-    		try {
-    			carCosts[0][i] = distances.get("Amherst, MA").get(riders[i-1].getDestination());
-    		}catch(NullPointerException e) {
-    			/*System.out.println(distances.get("Amherst, MA"));
-        		System.out.println(riders[i-1].getDestination());
-        		System.out.println(distances.get("Amherst, MA").get(riders[i-1].getDestination()));*/
     			carCosts[0][i] = 0.0;
-    		}
+    		else 
+    			carCosts[0][i] = distances.get("Amherst, MA").get(riders[i-1].getDestination());
     	}
-    	//carCosts[0][carCost[0].length-1] = distances.get("Amherst, MA").get(destination);
     	
     	//Intra-riders
     	for (int i=1; i<carCosts.length-1; i++) {
     		for (int j=1; j<carCosts[i].length-1; j++) {
-    			carCosts[i][j] = distances.get(riders[i-1].getDestination()).get(riders[j-1].getDestination());
+    			if (riders[i-1] == null || riders[j-1] == null)
+    				carCosts[i][j] = 0.0;
+    			else
+    				carCosts[i][j] = distances.get(riders[i-1].getDestination()).get(riders[j-1].getDestination());
     		}
     	}
     	
     	//Riders to driver
     	for (int i=1; i<carCosts.length-1; i++) {
-    		carCosts[carCosts.length-1][i] = distances.get(riders[i-1].getDestination()).get(destination);
+    		if(riders[i-1] == null)
+    			carCosts[carCosts.length-1][i] = 0.0;
+    		else
+    			carCosts[carCosts.length-1][i] = distances.get(riders[i-1].getDestination()).get(destination);
     	}
     	
     	//2: Greedily construct route
@@ -97,10 +104,7 @@ public class Car {
     	for (int i=1; i<order.size(); i++) {
     		totalCost += carCosts[order.get(i-1)][order.get(i)];
     	}
-    	
-    	return totalCost;
-    		
-    	
+    	return totalCost;    		
     }
     
     private int findNextStop(double[] dists, LinkedList<Integer> excluding) {

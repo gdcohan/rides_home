@@ -1,3 +1,4 @@
+// Written by Greg
 public class Rider {
 
     public String destination;
@@ -6,20 +7,20 @@ public class Rider {
     public int Id;
 	
     public Rider(String destination) {
-	this.destination = destination;
-	isAssigned = false;
+		this.destination = destination;
+		isAssigned = false;
     }
     
     public String getDestination() {
-	return destination;
+		return destination;
     }
     
     public boolean isAssigned(){
-	return isAssigned;
+		return isAssigned;
     }
     
     public void setAssigned(boolean b) {
-	isAssigned = b;
+		isAssigned = b;
     }
     
 }

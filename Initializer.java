@@ -7,6 +7,7 @@ import java.util.LinkedList;
 import java.util.Map.Entry;
 import java.util.Random;
 
+//Written by Mike
 public class Initializer {
 
 	public static final String LOCAL_DEBUG = "src/";
@@ -17,6 +18,11 @@ public class Initializer {
 	private ArrayList<Car> cars;
 	private ArrayList<Rider> riders;
 	
+	// Reads in the students, cars, and assigns
+	// the cars to specific students 
+	// (we had which state the cars were registered,
+	// so we randomly assigned the car to a student
+	// from that state)
 	public Initializer(String studentFile, String carFile) {
 		
 		List<String> students = parseStudents(studentFile);
